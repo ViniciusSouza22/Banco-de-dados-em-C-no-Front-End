@@ -1,0 +1,1 @@
+Desenvolvi uma aplicação front-end que se comunica com o back-end via API construída em C#. A integração com o banco de dados PostgreSQL é realizada por meio de consultas e operações CRUD, garantindo compatibilidade com múltiplas versões do SGBD. O sistema foi projetado com foco em escalabilidade, modularidade e segurança na troca de informações entre as camadas.
