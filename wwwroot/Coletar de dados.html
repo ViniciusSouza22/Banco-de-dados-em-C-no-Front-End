@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Teste 2</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="styles 2.css">
+    <style>
+        /* Estilo mínimo para garantir a exibição da mensagem */
+        #mensagemStatus {
+            margin-top: 15px;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: opacity 0.3s ease;
+        }
+        .mensagem-sucesso {
+            color: green;
+        }
+        .mensagem-erro {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <div class="logo-container">
+                    <i class="fas fa-database"></i>
+                </div>
+                <div class="header-text">
+                    <h1>Sistema Plastick</h1>
+                    <p>Banco de dados</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <nav class="navigation">
+        <div class="nav-container">
+            <a href="index.html" class="nav-tab"><i class="fas fa-chart-line"></i> Dados</a>
+            <a href="Contabilidade.html" class="nav-tab"><i class="fas fa-calculator"></i> Contabilidade</a>
+            <a href="coletar-dados.html" class="nav-tab active"><i class="fas fa-file-import"></i> Coletar de dados</a>
+            <a href="Coletar da contabilidade.html" class="nav-tab"><i class="fas fa-file-invoice"></i> Coletar da Contabilidade</a>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <section id="coletar-dados" class="content-section">
+            <h2 class="section-title">Coletar Dados de Vendas</h2>
+            <form id="formColetarDados" class="form-filter">
+                <div class="form-group">
+                    <label for="produtoNome">Nome do Produto:</label>
+                    <input type="text" id="produtoNome" name="produto" required placeholder="Ex: Sacola Plástica 50x70" />
+                </div>
+                <div class="form-group">
+                    <label for="clienteNome">Cliente:</label>
+                    <input type="text" id="clienteNome" name="cliente" required placeholder="Ex: Supermercado Preço Bom" />
+                </div>
+                <div class="form-group">
+                    <label for="precoProduto">Preço Unitário:</label>
+                    <input type="number" id="precoProduto" name="preco" step="0.01" required placeholder="Ex: 25.50" />
+                </div>
+                <div class="form-group">
+                    <label for="vendasTotal">Vendas (Valor Total):</label>
+                    <input type="number" id="vendasTotal" name="vendas" step="0.01" required placeholder="Ex: 500.00" />
+                </div>
+                <div class="form-group">
+                    <label for="quantidadeProduto">Quantidade Vendida:</label>
+                    <input type="number" id="quantidadeProduto" name="quantidade" required placeholder="Ex: 20" />
+                </div>
+                <div class="form-group">
+                    <label for="dataVenda">Data da Venda:</label>
+                    <input type="date" id="dataVenda" name="data" required />
+                </div>
+                <button id="enviarDadosBtn" type="submit">
+                    <i class="fas fa-paper-plane"></i> Enviar Dados de Venda
+                </button>
+            </form>
+
+            <!-- Mensagem de status -->
+            <div id="mensagemStatus"></div>
+        </section>
+    </main>
+
+    <script>
+    // Máscara para formatar moeda brasileira (R$) no input enquanto digita
+    document.querySelectorAll('.money').forEach(input => {
+        input.addEventListener('input', () => {
+            let valor = input.value;
+
+            // Remove tudo que não for número (incluindo a vírgula)
+            valor = valor.replace(/\D/g, '');
+
+            // Transforma em número para formatar (em centavos)
+            if (valor.length === 0) {
+                input.value = '';
+                return;
+            }
+
+            valor = (parseInt(valor, 10) / 100).toFixed(2);
+
+            // Troca ponto decimal por vírgula
+            valor = valor.replace('.', ',');
+
+            // Adiciona ponto como separador de milhar
+            valor = valor.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+            input.value = valor;
+        });
+    });
+
+    // Função para converter formato brasileiro "1.234,56" para número 1234.56
+    function formatToNumber(valorStr) {
+        if (!valorStr) return 0;
+        // Remove os pontos de milhar e substitui a vírgula por ponto decimal
+        return parseFloat(valorStr.replace(/\./g, '').replace(',', '.')) || 0;
+    }
+
+    document.getElementById('formColetarContabilidade').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const dados = {
+            // Usa a função de conversão para cada campo de dinheiro
+            impostos: formatToNumber(document.getElementById('impostosContabilidade').value),
+            materia_prima: formatToNumber(document.getElementById('materiaPrimaContabilidade').value),
+            apurado_mes: formatToNumber(document.getElementById('apuradoMesContabilidade').value),
+            lucro_mes: formatToNumber(document.getElementById('lucroMesContabilidade').value),
+            salarios: formatToNumber(document.getElementById('salariosContabilidade').value),
+            total_receitas: formatToNumber(document.getElementById('totalReceitasContabilidade').value),
+            data_mes: document.getElementById('dataContabilidadeMes').value
+        };
+
+        try {
+            const resp = await fetch('http://localhost:3001/enviar-contabilidade', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dados)
+            });
+
+            const texto = await resp.text();
+            const mensagemStatus = document.getElementById('mensagemStatusContabilidade');
+
+            if (resp.ok) {
+                mensagemStatus.textContent = '✅ Dados de contabilidade inseridos com sucesso!';
+                mensagemStatus.className = 'mensagem-sucesso';
+                document.getElementById('formColetarContabilidade').reset();
+            } else {
+                mensagemStatus.textContent = `❌ Erro ao enviar dados: ${texto}`;
+                mensagemStatus.className = 'mensagem-erro';
+            }
+        } catch (error) {
+            const mensagemStatus = document.getElementById('mensagemStatusContabilidade');
+            mensagemStatus.textContent = '❌ Erro na requisição. Verifique o servidor.';
+            mensagemStatus.className = 'mensagem-erro';
+            console.error('Erro na requisição:', error);
+        }
+    });
+</script>
+</body>
+</html>

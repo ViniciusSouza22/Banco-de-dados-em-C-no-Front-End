@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Teste 3</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="styles 2.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <div class="logo-container">
+                    <i class="fas fa-database"></i>
+                </div>
+                <div class="header-text">
+                    <h1>Sistema Plastick</h1>
+                    <p>Banco de dados</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <nav class="navigation">
+        <div class="nav-container">
+            <a href="index.html" class="nav-tab"><i class="fas fa-chart-line"></i> Dados</a>
+            <a href="contabilidade.html" class="nav-tab active"><i class="fas fa-calculator"></i> Contabilidade</a>
+            <a href="Coletar de dados.html" class="nav-tab"><i class="fas fa-file-import"></i> Coletar de dados</a>
+            <a href="Coletar da contabilidade.html" class="nav-tab"><i class="fas fa-file-invoice"></i> Coletar da Contabilidade</a>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <section id="contabilidade" class="content-section active">
+            <h2 class="section-title">Contas e Despesas da Empresa</h2>
+            <section class="financial-data-grid">
+                <div class="data-card">
+                    <div class="data-card__header">
+                        <div class="data-card__icon bg-purple-icon">
+                            <i class="fas fa-receipt"></i>
+                        </div>
+                        <span class="data-card__percentage text-red-percentage">-2.0%</span>
+                    </div>
+                    <div class="data-card__label">Impostos</div>
+                    <div class="data-card__value" id="contabilidadeImpostos">R$0,00</div>
+                    <div class="data-card__period">Este mês</div>
+                </div>
+                <div class="data-card">
+                    <div class="data-card__header">
+                        <div class="data-card__icon bg-red-icon">
+                            <i class="fas fa-boxes"></i>
+                        </div>
+                        <span class="data-card__percentage text-red-percentage">+1.0%</span>
+                    </div>
+                    <div class="data-card__label">Despesas com matéria-prima</div>
+                    <div class="data-card__value" id="contabilidadeMateriaPrima">R$0,00</div>
+                    <div class="data-card__period">Este mês</div>
+                </div>
+                <div class="data-card">
+                    <div class="data-card__header">
+                        <div class="data-card__icon bg-blue-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <span class="data-card__percentage text-green-percentage">+0.8%</span>
+                    </div>
+                    <div class="data-card__label">Apurado do mês</div>
+                    <div class="data-card__value" id="contabilidadeApuradoMes">R$0,00</div>
+                    <div class="data-card__period">Este mês</div>
+                </div>
+                <div class="data-card">
+                    <div class="data-card__header">
+                        <div class="data-card__icon bg-green-icon">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <span class="data-card__percentage text-green-percentage">+3.5%</span>
+                    </div>
+                    <div class="data-card__label">Lucro do mês</div>
+                    <div class="data-card__value" id="contabilidadeLucroMes">R$0,00</div>
+                    <div class="data-card__period">Este mês</div>
+                </div>
+                <div class="data-card">
+                    <div class="data-card__header">
+                        <div class="data-card__icon bg-orange-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <span class="data-card__percentage text-red-percentage">-0.5%</span>
+                    </div>
+                    <div class="data-card__label">Despesa dos salários dos funcionários</div>
+                    <div class="data-card__value" id="contabilidadeSalarios">R$0,00</div>
+                    <div class="data-card__period">Este mês</div>
+                </div>
+                <div class="data-card">
+                    <div class="data-card__header">
+                        <div class="data-card__icon bg-yellow-icon">
+                            <i class="fas fa-hand-holding-usd"></i>
+                        </div>
+                        <span class="data-card__percentage text-green-percentage">+1.2%</span>
+                    </div>
+                    <div class="data-card__label">Total de receitas</div>
+                    <div class="data-card__value" id="contabilidadeTotalReceitas">R$0,00</div>
+                    <div class="data-card__period">Este mês</div>
+                </div>
+            </section>
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>Gráfico de Contabilidade</h3>
+                    <form id="form-filtro">
+                        <label for="dataMes">Filtrar por mês:</label>
+                        <input type="month" id="dataMes" class="chart-filter">
+                        <button type="submit">Buscar</button>
+                    </form>
+                </div>
+                <div class="chart-container">
+                    <canvas id="contabilidadeChart"></canvas>
+                </div>
+            </div>
+            <div id="resultadoContabilidade" style="margin-top: 20px;"></div>
+        </section>
+    </main>
+<script>
+    let contabilidadeChartInstance = null;
+
+    function formatarReal(valor) {
+        if (valor == null) return 'R$0,00';
+        return Number(valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    function updateContabilidadeChart(data) {
+        const ctx = document.getElementById('contabilidadeChart').getContext('2d');
+
+        if (contabilidadeChartInstance) {
+            contabilidadeChartInstance.destroy();
+        }
+
+        contabilidadeChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Impostos', 'Matéria-Prima', 'Salários', 'Apurado do Mês', 'Lucro do Mês', 'Total Receitas'],
+                datasets: [{
+                    label: 'Valores Contábeis (R$)',
+                    data: [
+                        data.impostos,
+                        data.materia_prima,
+                        data.salarios,
+                        data.apurado_mes,
+                        data.lucro_mes,
+                        data.total_receitas
+                    ],
+                    backgroundColor: [
+                        'rgba(153, 102, 255, 0.6)',
+                        'rgba(255, 99, 132, 0.6)',
+                        'rgba(255, 159, 64, 0.6)',
+                        'rgba(54, 162, 235, 0.6)',
+                        'rgba(75, 192, 192, 0.6)',
+                        'rgba(255, 206, 86, 0.6)'
+                    ],
+                    borderColor: [
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(255, 159, 64, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(255, 206, 86, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return formatarReal(value);
+                            }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += formatarReal(context.parsed.y);
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    async function carregarDadosContabilidade(mes, ano) {
+        try {
+            const resposta = await fetch('http://localhost:3001/filtrar-contabilidade', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mes: parseInt(mes), ano: parseInt(ano) })
+            });
+
+            if (!resposta.ok) {
+                // Tenta ler o corpo da resposta para um erro mais detalhado
+                const errorText = await resposta.text();
+                throw new Error(`Erro de HTTP: ${resposta.status} - ${errorText}`);
+            }
+
+            const dados = await resposta.json();
+
+            if (dados.length === 0) {
+                alert('Nenhum dado encontrado para esse mês.');
+                document.querySelectorAll('.data-card__value').forEach(el => el.textContent = 'R$0,00');
+                if (contabilidadeChartInstance) {
+                    contabilidadeChartInstance.destroy();
+                    contabilidadeChartInstance = null;
+                }
+                return;
+            }
+
+            const registro = dados[0];
+
+            document.getElementById('contabilidadeImpostos').textContent = formatarReal(registro.impostos);
+            document.getElementById('contabilidadeMateriaPrima').textContent = formatarReal(registro.materia_prima);
+            document.getElementById('contabilidadeApuradoMes').textContent = formatarReal(registro.apurado_mes);
+            document.getElementById('contabilidadeLucroMes').textContent = formatarReal(registro.lucro_mes);
+            document.getElementById('contabilidadeSalarios').textContent = formatarReal(registro.salarios);
+            document.getElementById('contabilidadeTotalReceitas').textContent = formatarReal(registro.total_receitas);
+
+            updateContabilidadeChart(registro);
+
+        } catch (error) {
+            console.error('Erro ao buscar dados da contabilidade:', error);
+            alert('Erro ao buscar dados. Verifique o console.');
+        }
+    }
+
+    document.getElementById('form-filtro').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const dataCompleta = document.getElementById('dataMes').value;
+        if (!dataCompleta) {
+            alert('Por favor, selecione uma data válida (mês e ano).');
+            return;
+        }
+
+        const [ano, mes] = dataCompleta.split('-');
+        await carregarDadosContabilidade(mes, ano);
+    });
+
+    window.addEventListener('load', () => {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = (today.getMonth() + 1).toString().padStart(2, '0');
+        const defaultDate = `${year}-${month}`;
+        document.getElementById('dataMes').value = defaultDate;
+        
+        carregarDadosContabilidade(month, year);
+    });
+</script>
+</body>
+</html>

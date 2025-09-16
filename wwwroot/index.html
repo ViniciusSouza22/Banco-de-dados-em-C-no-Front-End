@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Teste 4</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="styles 2.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <div class="logo-container">
+                    <i class="fas fa-database"></i>
+                </div>
+                <div class="header-text">
+                    <h1>Sistema Plastick</h1>
+                    <p>Banco de dados</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <nav class="navigation">
+        <div class="nav-container">
+            <a href="index.html" class="nav-tab active"><i class="fas fa-chart-line"></i> Dados</a>
+            <a href="Contabilidade.html" class="nav-tab"><i class="fas fa-calculator"></i> Contabilidade</a>
+            <a href="Coletar de dados.html" class="nav-tab"><i class="fas fa-file-import"></i> Coletar de dados</a>
+            <a href="Coletar da contabilidade.html" class="nav-tab"><i class="fas fa-file-invoice"></i> Coletar da Contabilidade</a>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <section class="content-section">
+            <h2 class="section-title">Dados de Vendas Detalhados</h2>
+            <form id="formProdutos" class="form-filter" onsubmit="return false;">
+                <div class="form-group">
+                    <label for="nomeBusca">Nome do Produto:</label>
+                    <input type="text" id="nomeBusca" name="nome" placeholder="Ex: Bolsa 23" />
+                </div>
+                <div class="form-group">
+                    <label for="clienteBusca">Cliente:</label>
+                    <input type="text" id="clienteBusca" name="cliente" placeholder="Ex: João da Silva" />
+                </div>
+                <div class="form-group">
+                    <label for="dataBusca">Data do Produto:</label>
+                    <input type="date" id="dataBusca" name="data" />
+                </div>
+                <button id="buscarDados" type="button">Buscar Dados</button>
+            </form>
+            <div class="table-card" style="margin-top: 1.5rem;">
+                <div class="table-header">
+                    <h3>Resultados da Busca</h3>
+                </div>
+                <div class="table-content">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Produto</th>
+                                <th>Cliente</th>
+                                <th>Preço</th>
+                                <th>Vendas</th>
+                                <th>Data</th>
+                                <th>Quantidade</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabela-dados">
+                            <tr><td colspan="7">Use os filtros acima para buscar dados.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+         document.addEventListener('DOMContentLoaded', () => {
+        async function buscarEExibirDados(filtros) {
+            const tabela = document.getElementById('tabela-dados');
+            tabela.innerHTML = '<tr><td colspan="7">🔍 Buscando dados...</td></tr>';
+
+            try {
+                // Converte string vazia em null
+                const payload = {
+                    nome: filtros.nome || null,
+                    cliente: filtros.cliente || null,
+                    data: filtros.data || null
+                };
+
+                const response = await fetch('http://localhost:3001/filtrar-dados', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
+
+                const dados = await response.json();
+                renderizarTabela(dados);
+            } catch (erro) {
+                console.error('❌ Erro ao buscar dados:', erro);
+                tabela.innerHTML = '<tr><td colspan="7">❌ Erro ao buscar os dados.</td></tr>';
+            }
+        }
+
+        function renderizarTabela(dados) {
+            const tabela = document.getElementById('tabela-dados');
+            tabela.innerHTML = '';
+
+            if (!dados || dados.length === 0) {
+                tabela.innerHTML = '<tr><td colspan="7">⚠️ Nenhum dado encontrado.</td></tr>';
+                return;
+            }
+
+            dados.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.id ?? 'N/A'}</td>
+                    <td>${item.produto ?? 'N/A'}</td>
+                    <td>${item.cliente ?? 'N/A'}</td>
+                    <td>${formatarPreco(item.preco)}</td>
+                    <td>${item.vendas ?? 'N/A'}</td>
+                    <td>${formatarData(item.data)}</td>
+                    <td>${item.quantidade ?? 'N/A'}</td>
+                `;
+                tabela.appendChild(row);
+            });
+        }
+
+        function formatarPreco(valor) {
+            const num = parseFloat(valor);
+            return isNaN(num) ? 'R$ 0,00' : `R$ ${num.toFixed(2).replace('.', ',')}`;
+        }
+
+        function formatarData(dataStr) {
+            if (!dataStr) return 'N/A';
+            const [ano, mes, dia] = dataStr.split('T')[0].split('-');
+            return `${dia}/${mes}/${ano}`;
+        }
+
+        document.getElementById('buscarDados')?.addEventListener('click', () => {
+            const filtros = {
+                nome: document.getElementById('nomeBusca').value.trim(),
+                cliente: document.getElementById('clienteBusca').value.trim(),
+                data: document.getElementById('dataBusca').value
+            };
+            buscarEExibirDados(filtros);
+        });
+    });
+    </script>
+</body>
+</html>
